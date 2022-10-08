@@ -1,16 +1,15 @@
 import os
 import pathlib
+import time
 from typing import Dict, List
 
+from numpy import random
 import pandas as pd
 import requests
 
 from bs4 import BeautifulSoup
 from bs4.element import ResultSet
 
-def check_env_vars():
-    print(os.environ["email"])
-    return os.environ["email"]
 
 def submit_request_to_sec(url) -> requests.models.Response:
     try:
@@ -142,3 +141,35 @@ def get_edgar_archive_year_quarters(
         edgar_archive_year_qtrs_df.to_csv(file_path, index=False)
     edgar_archive_year_qtrs_df = pd.read_csv(file_path, dtype=str)
     return edgar_archive_year_qtrs_df
+
+
+def get_df_of_available_edgar_archive_files(
+    year: str, qtr: str, data_dir: pathlib.Path, check_page: bool = False
+) -> pd.DataFrame:
+    archive_year_qtr_dir = data_dir.joinpath("archive", year, qtr)
+    archive_year_qtr_dir.mkdir(exist_ok=True, parents=True)
+    file_path = archive_year_qtr_dir.joinpath(f"available_edgar_data_archive_files.csv")
+    if not file_path.is_file() or check_page:
+        year_qtr_url = f"https://www.sec.gov/Archives/edgar/Feed/{year}/{qtr}/"
+        resp = submit_request_to_sec(url=year_qtr_url)
+        daily_table_rows = extract_table_rows_from_response(resp=resp)
+        edgar_archive_files_df = extract_data_from_edgar_table_rows(table_rows=daily_table_rows)
+        edgar_archive_files_df["Last Modified"] = pd.to_datetime(
+            edgar_archive_files_df["Last Modified"]
+        )
+        edgar_archive_files_df["file_url"] = year_qtr_url + edgar_archive_files_df["Name"]
+        edgar_archive_files_df.to_csv(file_path, index=False)
+    edgar_archive_files_df = pd.read_csv(file_path, dtype=str, parse_dates=["Last Modified"])
+    return edgar_archive_files_df
+
+
+def retrieve_all_edgar_archive_metadata_files(data_dir: pathlib.Path) -> None:
+    edgar_archive_years_df = get_egdar_archive_years(data_dir=data_dir)
+    for year in edgar_archive_years_df["Name"]:
+        edgar_archive_year_qtrs_df = get_edgar_archive_year_quarters(year=year, data_dir=data_dir)
+        for edgar_archive_year_qtr in edgar_archive_year_qtrs_df.iterrows():
+            qtr = edgar_archive_year_qtr[1]["Name"]
+            print(f"Year: {year}, {qtr}")
+            get_df_of_available_edgar_archive_files(year=year, qtr=qtr, data_dir=data_dir)
+            time.sleep(0.15 * random.uniform())
+    print("Finished retrieving metadata files")
