@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 import time
 from typing import Dict, List
 
@@ -23,6 +24,16 @@ def submit_request_to_sec(url) -> requests.models.Response:
             )
     except Exception as err:
         print(f"Error: {err}; url: {url}")
+
+
+def download_file_from_sec(file_url: str, file_path: pathlib.Path) -> None:
+    if not file_path.is_file() or force_repull:
+        with requests.get(
+            file_url, headers={"User-Agent": os.environ["email"]}, stream=True
+        ) as req:
+            req.raise_for_status()
+            with open(file_path, "wb") as req_file:
+                shutil.copyfileobj(req.raw, req_file)
 
 
 def decode_lines(response_lines):

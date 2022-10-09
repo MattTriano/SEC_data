@@ -20,3 +20,11 @@ The Division of Economic and Risk Analysis (DERA) offers investors and market pa
 ## EDGAR
 
 * [Developer resources](https://www.sec.gov/developer)
+* [Technical documentation](https://www.sec.gov/info/edgar/specifications/pds_dissemination_spec.pdf)
+* [api docs](https://www.sec.gov/edgar/sec-api-documentation)
+* [Form types](https://www.sec.gov/oiea/Article/edgarguide.html)
+
+* Data Sources:
+    * [feed](https://www.sec.gov/Archives/edgar/Feed/)
+    * [full-index](https://www.sec.gov/Archives/edgar/full-index/)
+    * [daily-index](https://www.sec.gov/Archives/edgar/daily-index/)
