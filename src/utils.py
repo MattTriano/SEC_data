@@ -1,7 +1,22 @@
 import pathlib
+import yaml
 
 import geopandas as gpd
 import pandas as pd
+from pymongo import MongoClient
+
+def get_mongodb_connection_from_credential_file(credential_path: pathlib.Path) -> Dict:
+    with open(credential_path) as cred_file:
+        credentials = yaml.load(cred_file, Loader=yaml.FullLoader)
+    assert "mongo_user" in credentials.keys()
+    assert "mongo_password" in credentials.keys()
+    if "mongo_port" in credentials.keys():
+        port_num = credentials["mongo_port"]
+    else:
+        port_num = "27017"
+    mongo_connection_str = f"mongodb://{credentials['mongo_user']}:{credentials['mongo_password']}@localhost:{port_num}/"
+    return MongoClient(mongo_connection_str)
+
 
 def extract_data_from_url(
     file_path: pathlib.Path,

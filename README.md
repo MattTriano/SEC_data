@@ -8,8 +8,19 @@ First; create a `.env` file that contains a variable named `email` and an email 
 user@host:~/.../sec$ echo "email=example.email@email.com" > .env
 ```
 
+Add a mongo_db password and username via
 
+```bash
+user@host:~/.../sec$ mkdir secrets
+user@host:~/.../sec$ echo "your_mongo_user_name" > secrets/mongo_user.txt
+user@host:~/.../sec$ echo "your_mongo_password" > secrets/mongo_password.txt
+```
 
+And you can spin up a mongo-db database via 
+
+```bash
+user@host:~/.../sec$ docker-compose up
+```
 
 ## DERA Data Library
 
@@ -28,3 +39,6 @@ The Division of Economic and Risk Analysis (DERA) offers investors and market pa
     * [feed](https://www.sec.gov/Archives/edgar/Feed/)
     * [full-index](https://www.sec.gov/Archives/edgar/full-index/)
     * [daily-index](https://www.sec.gov/Archives/edgar/daily-index/)
+
+* ILSOS (Not related, but I just stumbled across it)
+    * https://www.ilsos.gov/data/bus_serv_home.html

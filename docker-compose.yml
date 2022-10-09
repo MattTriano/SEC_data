@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6.0.2
+    container_name: sec_mongo
+    ports:
+      - 27017:27017
+    secrets:
+      - mongo_user
+      - mongo_password
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_user
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_password
+    volumes:
+      - sec_mongo:/data/db
+
+volumes:
+  sec_mongo:
+
+secrets:
+  mongo_user:
+    file: ./secrets/mongo_user.txt
+  mongo_password:
+    file: ./secrets/mongo_password.txt
