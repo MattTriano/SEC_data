@@ -1,5 +1,7 @@
 import datetime as dt
+import json
 import pathlib
+import zipfile
 
 from pymongo import MongoClient, ASCENDING
 from pymongo.collection import Collection
@@ -49,7 +51,7 @@ def ingest_companyfacts_jsons_into_database(
             company_name_list = zf.namelist()
             company_name_chunks = (
                 company_name_list[i : i + docs_per_insert]
-                for i in range(0, len(company_name_list[start_from:]), docs_per_insert)
+                for i in range(start_from, len(company_name_list), docs_per_insert)
             )
             for company_name_chunk in company_name_chunks:
                 company_files = []
@@ -65,22 +67,25 @@ def ingest_companyfacts_jsons_into_database(
                         else:
                             print(f"Invalid company file found: {company_name}")
                             record_invalid_company_file(
-                                invalid_company_name=company_name, data_dir=data_dir
+                                invalid_company_file_name=company_name, data_dir=data_dir
                             )
                 results = company_daily_index.find({"cik": {"$in": company_ciks}}, {"cik": 1})
                 already_inserted_ciks = [result["cik"] for result in results]
                 new_ciks = list(set(company_ciks) - set(already_inserted_ciks))
                 company_files_to_insert = [cf for cf in company_files if cf["cik"] in new_ciks]
                 number_new = len(company_files_to_insert)
-                company_daily_index.insert_many(company_files_to_insert)
-                number_inserted = number_inserted + number_new
-                print(
-                    f"Docs inserted: this chunk: {number_new: >3},"
-                    + f" this session: {number_inserted: > 7},"
-                    + f" total: {number_inserted+start_from: > 7}"
-                )
+                if number_new > 0:
+                    company_daily_index.insert_many(company_files_to_insert)
+                    number_inserted = number_inserted + number_new
+                    print(
+                        f"Docs inserted: this chunk: {number_new: >3},"
+                        + f" this session: {number_inserted: > 7},"
+                        + f" total: {number_inserted+start_from: > 7}"
+                    )
+                else:
+                    print(f"Number of new records: {number_new}. Skipping inserts this chunk")
     except Exception as err:
-        print(f"Error: {err}")
+        print(f"Error: {type(err)}: {err}")
         print(f"Last company file: {company_name}")
 
 
@@ -95,7 +100,6 @@ def main(project_root_dir: pathlib.Path):
     ingest_companyfacts_jsons_into_database(
         company_daily_index=company_daily_index, data_dir=data_dir, docs_per_insert=200
     )
-    pass
 
 
 if __name__ == "__main__":
