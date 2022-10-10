@@ -1,11 +1,22 @@
 import pathlib
+import urllib
+from typing import Dict
 import yaml
 
 import geopandas as gpd
 import pandas as pd
 from pymongo import MongoClient
 
-def get_mongodb_connection_from_credential_file(credential_path: pathlib.Path) -> Dict:
+
+def get_project_root_dir(project_name: str, a_file_path: pathlib.Path) -> pathlib.Path:
+    for dir_path in list(a_file_path.parents):
+        dir_contains_dotgit_dir = any([el for el in dir_path.iterdir() if el.name == ".git"])
+        if dir_path.name == project_name or dir_contains_dotgit_dir:
+            return dir_path
+    raise Exception("Did you enter the right project name?")
+
+
+def get_mongodb_client_from_credential_file(credential_path: pathlib.Path) -> Dict:
     with open(credential_path) as cred_file:
         credentials = yaml.load(cred_file, Loader=yaml.FullLoader)
     assert "mongo_user" in credentials.keys()
@@ -14,7 +25,10 @@ def get_mongodb_connection_from_credential_file(credential_path: pathlib.Path) -
         port_num = credentials["mongo_port"]
     else:
         port_num = "27017"
-    mongo_connection_str = f"mongodb://{credentials['mongo_user']}:{credentials['mongo_password']}@localhost:{port_num}/"
+    mongo_connection_str = (
+        f"mongodb://{urllib.parse.quote(credentials['mongo_user'])}:"
+        + f"{urllib.parse.quote(credentials['mongo_password'])}@localhost:{port_num}/"
+    )
     return MongoClient(mongo_connection_str)
 
 

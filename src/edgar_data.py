@@ -184,3 +184,15 @@ def retrieve_all_edgar_archive_metadata_files(data_dir: pathlib.Path) -> None:
             get_df_of_available_edgar_archive_files(year=year, qtr=qtr, data_dir=data_dir)
             time.sleep(0.15 * random.uniform())
     print("Finished retrieving metadata files")
+
+
+def download_bulk_daily_index_companyfacts_from_edgar(
+    data_dir: pathlib.Path, force_repull: bool = False
+) -> None:
+    company_facts_url = "http://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip"
+    company_facts_file_path = data_dir.joinpath(
+        "archive", "bulk", "daily-index", "companyfacts.zip"
+    )
+    company_facts_file_path.parent.mkdir(exist_ok=True, parents=True)
+    if not company_facts_file_path.is_file() or force_repull:
+        download_file_from_sec(file_url=company_facts_url, file_path=company_facts_file_path)
